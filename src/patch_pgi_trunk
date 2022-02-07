@@ -1,0 +1,51 @@
+#!/bin/bash
+#sed -i '351i \!$acc routine gang\' ./OCE/lib_fortran.F90
+#sed -i '1347i \!$acc routine gang\' ./OCE/DYN/dynhpg.F90
+#sed -i '1328i \!$acc routine gang\' ./OCE/DYN/dynhpg.F90
+#sed -i '1310i \!$acc routine gang\' ./OCE/DYN/dynhpg.F90
+#sed -i '1386i \!$acc routine gang\' ./OCE/DYN/dynhpg.F90
+
+
+#for i in $(find . -type f | grep -v do_loop_substitute.h90 | grep -v $0 )
+#   do sed -i -e "/DO_3D/i    CALL timing_start( \'$(basename -s .F90 $i )_count_bsc\') \n\!\$acc parallel "   -e  "/END_3D/a \!\$acc end parallel \n CALL timing_stop( \'$(basename -s .F90 $i )_count_bsc\') " $i 
+#   awk '{ if ($0 ~ /count_bsc/ && $0 ~ /timing_start/) {counter=NR ; gsub("count_bsc",counter,$0);print }  else if ($0 ~ /count_bsc/ && $0 ~ /timing_stop/) {gsub("count_bsc",counter,$0);print} else {print } }  ' $i > ${i}.tmp
+#   mv ${i}.tmp $i
+#   sed -i -e 's/^IF( ln_timing )/  IF( ln_timing )/' $i
+#   done
+for i in $(find . -name "*.F90" )  
+   do awk  -F ","  '{ if ($0 ~ /READ/ && $0 ~ /numnam_ref,/ )      print "      pos=index(numnam_ref,\"&"$2"\") \n" $1"(pos:),"$2","$3","$4    
+                 else if ($0 ~ /READ/ && $0 ~ /numnam_cfg,/ )      print "      pos=index(numnam_cfg,\"&"$2"\") \n" $1"(pos:),"$2","$3","$4
+                 else if ($0 ~ /READ/ && $0 ~ /numnam_ice_ref,/ )  print "      pos=index(numnam_ice_ref,\"&"$2"\") \n" $1"(pos:),"$2","$3","$4  
+                 else if ($0 ~ /READ/ && $0 ~ /numnam_ice_cfg,/ )  print "      pos=index(numnam_ice_cfg,\"&"$2"\") \n" $1"(pos:),"$2","$3","$4
+                 else if ($0 ~ /READ/ && $0 ~ /numnat_ref,/ )      print "      pos=index(numnat_ref,\"&"$2"\") \n" $1"(pos:),"$2","$3","$4
+                 else if ($0 ~ /READ/ && $0 ~ /numnat_cfg,/ )      print "      pos=index(numnat_cfg,\"&"$2"\") \n" $1"(pos:),"$2","$3","$4
+                 else                                             print $0 }' $i > ${i}.new   
+   mv ${i}.new $i 
+   done
+find . -name "*.F90" | xargs sed -i 's/\& nam/\&nam/g'
+find . -name "*.F90" | xargs sed -i  '/INTEGER *:: *ios/a     INTEGER ::  pos'
+
+
+echo "add INTEGER , PUBLIC ::   pos !: BSC PGI workaround to dom_oce.F90 "
+sed -i '29i\INTEGER , PUBLIC ::   pos !: BSC PGI workaround to dom_oce.F90\' OCE/DOM/dom_oce.F90
+sed -i '29i\USE, INTRINSIC :: IEEE_ARITHMETIC\' OCE/stpctl.F90
+sed -i 's\ISNAN\IEEE_IS_NAN\g' OCE/stpctl.F90
+###
+#echo "profile acc loops"
+#sed -i '65i\   USE timing ' OCE/ZDF/zdftke.F90 
+#sed -i '30i\   USE timing ' OCE/SBC/fldread.F90
+#sed -i '30i\   USE timing ' OCE/DOM/istate.F90
+#sed -i '20i\   USE timing ' OCE/OBS/obs_oper.F90
+#sed -i '30i\   USE timing ' OCE/ZDF/zdfgls.F90
+#sed -i '30i\   USE timing ' ICE/iceistate.F90
+
+
+#for i in OCE/SBC/sbcwave.F90 OCE/TRA/traadv_cen.F90 OCE/TRA/traadv_fct.F90 OCE/TRA/traadv_mus.F90 OCE/TRA/traadv_qck.F90 OCE/TRA/traadv_ubs.F90 OCE/TRA/traldf_iso.F90 OCE/TRA/traldf_triad.F90 OCE/TRA/tramle.F90 TOP/PISCES/trcwri_pisces.F90 OCE/TRD/trdken.F90 OCE/TRD/trdmxl.F90 OCE/TRD/trdtra.F90 OCE/ZDF/zdfmxl.F90 OCE/ZDF/zdfosm.F90 OCE/ZDF/zdfric.F90 OCE/ZDF/zdfswm.F90 OCE/DOM/dommsk.F90 SWE/dommsk.F90 OCE/DYN/dynadv_cen2.F90 OCE/DYN/dynadv_ubs.F90 OCE/DYN/dynldf_iso.F90 OCE/DYN/dynspg_exp.F90 OCE/SBC/fldread.F90 ICE/icevar.F90 OCE/LDF/ldftra.F90  OCE/TRD/trddyn.F90 OCE/TRD/trdglo.F90 OCE/USR/usrdef_istate.F90 OCE/ZDF/zdfiwm.F90 ICE/icedyn_adv_pra.F90 ICE/icedyn_adv_umx.F90 OCE/ISF/isfcpl.F90 OCE/LDF/ldfc1d_c2d.F90 OCE/STO/stopts.F90 
+#  do  awk 'FNR==NR{ if (/USE /) p=NR; next} 1; FNR==p{ print "   USE timing" }' $i $i > ${i}.tmp
+#  echo $i
+#  mv ${i}.tmp $i
+#  done  
+###
+sed -i 's/\&namtrc\"/\&namtrc \"/g' ./TOP/trcnam.F90
+#remove stpctl from a parallel region
+#sed -i -e '389d;382d' ./OCE/ISF/isfcpl.F90

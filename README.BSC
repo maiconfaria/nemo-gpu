@@ -1,0 +1,23 @@
+#!/bin/bash
+# NEMO_DIA_GPU_MERGE_122020.tar.gz contains trunk release 13535 and the input #
+# with ext, mk and sette folders ready for the diagnostic_gpu_merge branch.   #
+# to use set edit the paths using your BASEDIR.                               #    
+
+export BASEDIR=$(pwd)
+cp /gpfs/projects/bsc99/bsc99214/NEMO_DIA_GPU_MERGE_122020.tar.gz $BASEDIR
+tar -zxvf NEMO_DIA_GPU_MERGE_122020
+git clone -b diagnostic_gpu_merge https://earth.bsc.es/gitlab/svn/nemo-mirror.git
+cd base_nemo_r13535_xios
+rm src arch 
+ln -s $BASEDIR/nemo-mirror/src .
+ln -s $BASEDIR/nemo-mirror/arch .
+source pw9.env
+./makenemo -m PGI_PW9 -r ORCA2_ICE_PISCES -n ORCA2_ICE_PISCES_dev -j 40 add_key 'key_gpu'
+cd cfgs/ORCA2_ICE_PISCES_dev/EXP00
+ln -s $BASEDIR/input/* .
+cp $BASEDIR/nemo-mirror/{namelist_cfg,nemo.batch,pw9.env}
+sbatch  nemo.batch
+
+
+
+

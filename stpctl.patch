@@ -1,0 +1,19 @@
+--- /home/bsc99/bsc99214/trunk/nemo-mirror/src/OCE/stpctl.F90	2020-09-23 19:05:58.916223686 +0200
++++ src/OCE/stpctl.F90	2020-09-23 19:51:23.150775748 +0200
+@@ -27,6 +27,7 @@
+    USE lib_mpp         ! distributed memory computing
+    !
+    USE netcdf          ! NetCDF library
++   USE, INTRINSIC :: IEEE_ARITHMETIC
+    IMPLICIT NONE
+    PRIVATE
+ 
+@@ -179,7 +180,7 @@
+          &  zmax(3) >=   0._wp .OR.   &                   ! negative or zero sea surface salinity
+          &  zmax(4) >= 100._wp .OR.   &                   ! too large sea surface salinity ( > 100 )
+          &  zmax(4) <    0._wp .OR.   &                   ! too large sea surface salinity (keep this line for sea-ice)
+-         &  ISNAN( zmax(1) + zmax(2) + zmax(3) ) .OR.   &               ! NaN encounter in the tests
++         &  IEEE_IS_NAN( zmax(1) + zmax(2) + zmax(3) ) .OR.   &               ! NaN encounter in the tests
+          &  ABS(   zmax(1) + zmax(2) + zmax(3) ) > HUGE(1._wp) ) THEN   ! Infinity encounter in the tests
+          !
+          iloc(:,:) = 0

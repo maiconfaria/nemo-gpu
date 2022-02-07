@@ -1,0 +1,23 @@
+#!/bin/bash
+#SBATCH --job-name="gpu"
+#SBATCH --workdir=.
+#SBATCH --output=node_%j.out
+#SBATCH --error=node_%j.err
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=4
+#SBATCH --ntasks-per-node=40
+#SBATCH --gres=gpu:4
+#SBATCH --time=4:00:00
+#SBATCH --exclusive
+
+
+##Set environment
+#ulimit -s unlimited
+source pw9.env 
+export CUDA_MPS_PIPE_DIRECTORY=/nvme1/$SLURM_JOB_ID/pipe
+export CUDA_MPS_LOG_DIRECTORY=/nvme1/$SLURM_JOB_ID/log
+export  CUDA_VISIBLE_DEVICES=0,1,2,3
+nvidia-cuda-mps-control -d
+
+
+mpirun --bind-to core --report-bindings -np 40 ./nemo

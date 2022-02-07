@@ -1,0 +1,17 @@
+
+for i in $(find . -name "*.F90" )  
+   do awk  -F ","  '{ if ($0 ~ /READ/ && $0 ~ /numnam_ref,/ )      print "      pos=index(numnam_ref,\"&"$2"\") \n" $1"(pos:),"$2","$3","$4    
+                 else if ($0 ~ /READ/ && $0 ~ /numnam_cfg,/ )      print "      pos=index(numnam_cfg,\"&"$2"\") \n" $1"(pos:),"$2","$3","$4
+                 else if ($0 ~ /READ/ && $0 ~ /numnam_ice_ref,/ )  print "      pos=index(numnam_ice_ref,\"&"$2"\") \n" $1"(pos:),"$2","$3","$4  
+                 else if ($0 ~ /READ/ && $0 ~ /numnam_ice_cfg,/ )  print "      pos=index(numnam_ice_cfg,\"&"$2"\") \n" $1"(pos:),"$2","$3","$4
+                 else if ($0 ~ /READ/ && $0 ~ /numnat_ref,/ )      print "      pos=index(numnat_ref,\"&"$2"\") \n" $1"(pos:),"$2","$3","$4
+                 else if ($0 ~ /READ/ && $0 ~ /numnat_cfg,/ )      print "      pos=index(numnat_cfg,\"&"$2"\") \n" $1"(pos:),"$2","$3","$4
+                 else                                             print $0 }' $i > $i.new   
+   mv $i.new $i 
+   done
+find . -name "*.F90" | xargs sed -i 's/\& nam/\&nam/g'
+find . -name "*.F90" | xargs sed -i  '/INTEGER *:: *ios/a     INTEGER ::  pos'
+echo "add INTEGER , PUBLIC ::   pos !: BSC PGI workaround to dom_oce.F90 "
+sed -i '29i\INTEGER , PUBLIC ::   pos !: BSC PGI workaround to dom_oce.F90\' OCE/DOM/dom_oce.F90
+sed -i 's/\&namtrc\"/\&namtrc \"/g' ./TOP/trcnam.F90
+
